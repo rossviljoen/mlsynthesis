@@ -1,0 +1,26 @@
+[env_vars]
+a
+b
+
+[sys_vars]
+x
+y
+
+[env_init]
+!a & !b
+
+[sys_init]
+!x & !y
+
+[env_trans]
+a' | !(x | y)
+
+[sys_trans]
+!x' | !y'
+
+[sys_goals]
+a & y
+
+[weights]
+y'  : -1
+x   : 1

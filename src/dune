@@ -1,0 +1,11 @@
+(ocamllex
+  (modules lexer))
+
+(menhir
+  (modules parser)
+  (flags -la 2))
+
+(executable
+  (name main)
+  (preprocess (pps ppx_deriving.show ppx_jane))
+  (libraries core cudd))
