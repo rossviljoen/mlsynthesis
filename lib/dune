@@ -5,7 +5,7 @@
   (modules parser)
   (flags -la 2))
 
-(executable
-  (name main)
+(library
+  (name synthesis)
   (preprocess (pps ppx_deriving.show ppx_jane))
   (libraries core cudd))

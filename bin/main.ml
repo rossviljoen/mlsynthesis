@@ -1,7 +1,7 @@
 open Core
-open Lexer
 open Lexing
-open Game
+open Synthesis                  (* This project's libraries *)
+open Lexer
 
 let print_position outx lexbuf =
   let pos = lexbuf.lex_curr_p in
@@ -17,10 +17,18 @@ let parse_with_error lexbuf =
     fprintf stderr "%a: syntax error\n" print_position lexbuf;
     exit (-1)
 
+let print_id fmt id = Format.pp_print_string fmt (string_of_int id)
+
 let rec parse_and_print lexbuf =
   match parse_with_error lexbuf with
   | Some value ->
-    printf "%s\n" (Syntax.show value);
+    let tree = value in
+    let game = Game.make_game tree in
+    let _ = Strategy.solve game in
+    (* printf "%s\n" (Syntax.show value); *)
+
+    Format.printf "%a" (Cudd.Bdd.print print_id) (Game.env_init game);
+    
     parse_and_print lexbuf
   | None -> ()
 
@@ -30,7 +38,7 @@ let loop filename () =
   lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
   parse_and_print lexbuf;
   In_channel.close inx
-
+  
 let () =
   Command.basic_spec ~summary:"Parse and display my super special language"
     Command.Spec.(empty +> anon ("filename" %: string))

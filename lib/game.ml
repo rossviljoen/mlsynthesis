@@ -8,6 +8,7 @@ type t = { man : Cudd.Man.dt;
            sys_goals : bdd;
            env_vars_primed : bdd;
            sys_vars_primed : bdd;
+           weights : bdd Map.M(Int).t;
          }
 
 and bdd = Cudd.Bdd.dt
@@ -20,6 +21,7 @@ let sys_trans g = g.sys_trans
 let sys_goals g = g.sys_goals
 let env_vars_pr g = g.env_vars_primed
 let sys_vars_pr g = g.sys_vars_primed
+let weights g = g.weights
 let prime = Cudd.Bdd.varmap
 let man g = g.man
 
@@ -63,9 +65,7 @@ let ripple_carry_add al bl cin =
       result :: (rca ~al:[] ~bl:btl ~carry:next_carry)
     | [], [] -> final_carry := carry; []
   in
-  match cin with
-  | false -> (rca ~al ~bl ~carry:(Bool false), !final_carry)
-  | true -> (rca ~al ~bl ~carry:(Bool true), !final_carry)
+  (rca ~al ~bl ~carry:(Bool cin), !final_carry)
   
 let bitwise_neg = List.map ~f:(fun f -> Not f)
 
@@ -190,7 +190,9 @@ let make_game tree =
         | Var v -> Map.find_exn var_map v
         | _ -> assert false)
     in
-    prime Cudd.Bdd.(List.fold non_pr_env_indices ~init:(dtrue man) ~f:(fun acc i -> dand acc (ithvar man i)))
+    prime Cudd.Bdd.(
+      List.fold non_pr_env_indices ~init:(dtrue man) ~f:(fun acc i -> dand acc (ithvar man i))
+    )
   in
   let sys_vars_primed =
     let non_pr_sys_bvars =  List.filter_map ~f:filter_bvars tree.Syntax.env_vars in
@@ -200,8 +202,31 @@ let make_game tree =
         | Var v -> Map.find_exn var_map v
         | _ -> assert false)
     in
-    prime Cudd.Bdd.(List.fold non_pr_sys_indices ~init:(dtrue man) ~f:(fun acc i -> dand acc (ithvar man i)))
+    prime Cudd.Bdd.(
+      List.fold non_pr_sys_indices ~init:(dtrue man) ~f:(fun acc i -> dand acc (ithvar man i))
+    )
   in
+
+  let weights =
+    let raw = List.map tree.Syntax.weights ~f:(fun (formula, n) -> (n, compile_to_bdd [formula])) in
+    
+    let unionPut map key data =
+      Map.update map key
+        ~f:(function
+          | None -> data
+          | Some s -> Cudd.Bdd.dor s data)
+    in
+    
+    List.fold raw ~init:(Map.singleton (module Int) 0 (Cudd.Bdd.dtrue man))
+      ~f:(fun prev (w, s) ->
+        Map.fold prev ~init:(Map.empty (module Int))
+          ~f:(fun ~key ~data tempMap -> 
+            Cudd.Bdd.(
+                let t' = unionPut tempMap (key + w) (dand data s) in
+                  unionPut t' key (dand data (dnot s))))
+      )
+  in
+  
   { man;
     env_init;
     sys_init;
@@ -210,4 +235,5 @@ let make_game tree =
     sys_goals;
     env_vars_primed;
     sys_vars_primed;
+    weights;
   }
