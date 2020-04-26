@@ -9,6 +9,7 @@ type t = { man : Cudd.Man.dt;
            env_vars_primed : bdd;
            sys_vars_primed : bdd;
            weights : bdd Map.M(Int).t;
+           var_names : string Map.M(Int).t;
          }
 
 and bdd = Cudd.Bdd.dt
@@ -22,6 +23,7 @@ let sys_goals g = g.sys_goals
 let env_vars_pr g = g.env_vars_primed
 let sys_vars_pr g = g.sys_vars_primed
 let weights g = g.weights
+let var_names g = g.var_names
 let prime = Cudd.Bdd.varmap
 let man g = g.man
 
@@ -110,7 +112,7 @@ let compile ~ivar_alist fl =
         let t' = compile_term' t and u' = compile_term' u in
         And (Not (compile_lt t' u'), Not (compile_eq t' u'))  (* since a>b == !(a<b) & !(a=b) *)
   in
-  List.fold fl ~init:(Bool true) ~f:(fun f1 f2 -> Or(f1, compile_f f2))
+  List.fold fl ~init:(Bool false) ~f:(fun f1 f2 -> Or(f1, compile_f f2))
   
 
 
@@ -152,9 +154,9 @@ let make_game tree =
   let num_bvars = List.(length env_bvars + length sys_bvars) in
   let numVars = num_ivars + num_bvars in
   let man = Cudd.Man.make_d ~numVars () in
-  let all_formula_vars = List.(rev_append
-                                 (rev_append env_bvars sys_bvars)
-                                 (rev_append (concat (map ~f:snd env_ivar_alist))
+  let all_formula_vars = List.(append
+                                 (append env_bvars sys_bvars)
+                                 (append (concat (map ~f:snd env_ivar_alist))
                                     (concat (map ~f:snd sys_ivar_alist))))
   in
   let var_indices = 
@@ -226,6 +228,11 @@ let make_game tree =
                   unionPut t' key (dand data (dnot s))))
       )
   in
+
+  let var_names =
+    Map.(fold var_map ~init:(empty (module Int)) ~f:(fun ~key ~data acc ->
+        add_exn acc ~key:data ~data:key)) (* reverse the map *)
+  in
   
   { man;
     env_init;
@@ -236,4 +243,5 @@ let make_game tree =
     env_vars_primed;
     sys_vars_primed;
     weights;
+    var_names;
   }

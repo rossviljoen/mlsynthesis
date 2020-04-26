@@ -15,6 +15,7 @@ val prime : bdd -> bdd
 val env_vars_pr : t -> bdd
 val sys_vars_pr : t -> bdd
 val weights : t -> bdd Map.M(Int).t
+val var_names : t -> string Map.M(Int).t
 val zero : t -> bdd
 
 val man : t -> Cudd.Man.dt

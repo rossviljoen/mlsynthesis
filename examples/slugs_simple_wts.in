@@ -21,3 +21,6 @@ a' | !(x | y)
 [sys_goals]
 a & y
 
+[weights]
+y'  : -1
+x   : 1

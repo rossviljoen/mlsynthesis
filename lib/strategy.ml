@@ -29,6 +29,10 @@ type t = { acceptStrategy : Game.bdd;
            threshold : Game.bdd Map.M(Int).t;
          }
 
+let acceptStrategy s = s.acceptStrategy
+let attractor s = s.attractor
+let goodForEnergy s = s.goodForEnergy
+let threshold s = s.threshold
 
 let impl g h = Cudd.Bdd.(dor (dnot g) h)
 

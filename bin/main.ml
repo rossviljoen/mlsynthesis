@@ -17,17 +17,17 @@ let parse_with_error lexbuf =
     fprintf stderr "%a: syntax error\n" print_position lexbuf;
     exit (-1)
 
-let print_id fmt id = Format.pp_print_string fmt (string_of_int id)
+let print_id game fmt id = Format.pp_print_string fmt (Map.find_exn (Game.var_names game) id)
 
 let rec parse_and_print lexbuf =
   match parse_with_error lexbuf with
-  | Some value ->
-    let tree = value in
+  | Some tree ->
     let game = Game.make_game tree in
-    let _ = Strategy.solve game in
+    let strat = Strategy.solve game 50 in
     (* printf "%s\n" (Syntax.show value); *)
 
-    Format.printf "%a" (Cudd.Bdd.print print_id) (Game.env_init game);
+    (* Format.printf "%a" (Cudd.Bdd.print (print_id game)) (Game.env_init game); *)
+    Format.printf "%a" (Cudd.Bdd.print_minterm (print_id game)) (Strategy.attractor strat);
     
     parse_and_print lexbuf
   | None -> ()
@@ -46,17 +46,11 @@ let () =
   |> Command.run
 
 
-(* let compile_ops = function
- *   | Rawgame.(Atom (Gt (t, u))) -> Rawgame.(Not (Or (Atom (Lt (t, u)), Atom (Eq (t, u)))))
- *   | f -> f *)
-    
-(* let first_pass raw_spec =
- *   let g = List.map ~f:compile_ops in
- *   { raw_spec with env_init = g raw_spec.env_init;
- *                   sys_init = g raw_spec.sys_init;
- *                   env_trans = g raw_spec.env_trans;
- *                   sys_trans = g raw_spec.sys_trans;
- *                   sys_goals = g raw_spec.sys_goals;
- *   } *)
-
-
+let parse_tree_from_file filename =
+  let inx = In_channel.create filename in
+  let lexbuf = Lexing.from_channel inx in
+  lexbuf.lex_curr_p <- { lexbuf.lex_curr_p with pos_fname = filename };
+  match parse_with_error lexbuf with
+  | Some tree -> tree
+  | None -> assert false
+          
