@@ -21,9 +21,6 @@ current_floor = 4 -> !(move = 2)
 current_floor = 0 -> !(move = 0)
 
 [weights]
-pending & !(current_floor = dest_floor)                                           : -1
-pending & !pending' & (src_floor - dest_floor) = 1 | (dest_floor - src_floor) = 1 : 1
-pending & !pending' & (src_floor - dest_floor) = 2 | (dest_floor - src_floor) = 2 : 2
-pending & !pending' & (src_floor - dest_floor) = 3 | (dest_floor - src_floor) = 3 : 3
-pending & !pending' & (src_floor - dest_floor) = 4 | (dest_floor - src_floor) = 4 : 4
+pending & !(current_floor = dest_floor) : -1
+pending & (current_floor = dest_floor) : 2
 

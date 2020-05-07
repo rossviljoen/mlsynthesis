@@ -1,0 +1,13 @@
+[env_vars]
+a      : [0..4]
+b      : [0..4]
+
+
+[sys_vars]
+x          : [0..2]
+ 
+[env_trans]
+a = b -> b' = 0
+
+[sys_trans]
+a = 4 -> x' = 0

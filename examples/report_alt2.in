@@ -1,0 +1,28 @@
+[env_vars]
+a
+
+[sys_vars]
+x
+y
+
+[env_trans]
+a & !a'
+!a & a'
+
+[sys_trans]
+(a & x & y) & (!a' & !x' & y')
+(!a & !x & y) & ((a' & x' & y') | (a' & x' & !y'))
+(a & x & !y) & ((!a' & !x' & y') | (!a' & !x' & !y'))
+(!a & !x & !y) & ((a' & x' & !y') | (a' & x' & y'))
+
+[sys_goals]
+a & x & y
+
+[weights]
+(a & x & y) & (!a' & !x' & y') : 0
+(!a & !x & y) & (a' & x' & y') : 0
+(!a & !x & y) & (a' & x' & !y') : 1
+(a & x & !y) & (!a' & !x' & y') : 0
+(a & x & !y) & (!a' & !x' & !y') : -2
+(!a & !x & !y) & (a' & x' & !y') : 0
+(!a & !x & !y) & (a' & x' & y') : -3

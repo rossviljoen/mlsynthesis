@@ -7,5 +7,9 @@
 
 (library
   (name synthesis)
-  (preprocess (pps ppx_deriving.show ppx_jane))
+  (inline_tests (deps
+                ../examples/slugs_simple.in
+                ../examples/slugs_simple_wts.in
+                ../examples/lift.in))
+  (preprocess (pps ppx_deriving.show ppx_jane ppx_expect))
   (libraries core cudd))

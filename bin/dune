@@ -1,4 +1,14 @@
 (executable
   (name main)
+  (modules main)
   (libraries synthesis))
 
+(executable
+  (name paper_eval)
+  (modules paper_eval)
+  (libraries synthesis))
+
+(executable
+  (name new_eval)
+  (modules new_eval)
+  (libraries synthesis))
